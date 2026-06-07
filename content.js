@@ -14,6 +14,8 @@ const SITE_CONFIGS = [
   }
 ];
 
+let observer = null;
+
 function getSiteConfig() {
   const host = window.location.hostname;
 
@@ -33,8 +35,6 @@ function resetStyles(card) {
 }
 
 function filterCards(config, keyword, filterMode) {
-  if (!keyword) return;
-
   const cards = document.querySelectorAll(config.cardSelector);
 
   cards.forEach(card => {
@@ -46,7 +46,9 @@ function filterCards(config, keyword, filterMode) {
       .trim()
       .toLowerCase();
 
-    const match = title.includes(keyword.toLowerCase());
+    const match =
+      keyword &&
+      title.includes(keyword.toLowerCase());
 
     const shouldShow =
       filterMode === "whitelist"
@@ -61,16 +63,26 @@ function filterCards(config, keyword, filterMode) {
   });
 }
 
-function startObserver(config, keyword, filterMode) {
-  filterCards(config, keyword, filterMode);
+function runFilter(config, settings) {
+  filterCards(
+    config,
+    settings.keyword || "",
+    settings.filterMode || "whitelist"
+  );
+}
 
-  setTimeout(() => {
-    filterCards(config, keyword, filterMode);
-  }, 1500);
+function startObserver(config, settings) {
+  if (observer) {
+    observer.disconnect();
+  }
 
-  new MutationObserver(() => {
-    filterCards(config, keyword, filterMode);
-  }).observe(document.body, {
+  runFilter(config, settings);
+
+  observer = new MutationObserver(() => {
+    runFilter(config, settings);
+  });
+
+  observer.observe(document.body, {
     childList: true,
     subtree: true
   });
@@ -79,14 +91,23 @@ function startObserver(config, keyword, filterMode) {
 const config = getSiteConfig();
 
 if (config) {
+
   chrome.storage.local.get(
     ["keyword", "filterMode"],
-    (result) => {
-      startObserver(
-        config,
-        result.keyword || "",
-        result.filterMode || "whitelist"
-      );
+    (settings) => {
+      startObserver(config, settings);
     }
   );
+
+  chrome.storage.onChanged.addListener(() => {
+
+    chrome.storage.local.get(
+      ["keyword", "filterMode"],
+      (settings) => {
+        startObserver(config, settings);
+      }
+    );
+
+  });
+
 }
