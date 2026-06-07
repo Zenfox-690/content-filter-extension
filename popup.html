@@ -3,4 +3,46 @@
   <body>
     <h3>Content Filter</h3>
   </body>
+</html><!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      width: 260px;
+      padding: 12px;
+      font-family: Arial, sans-serif;
+    }
+
+    input, select, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 12px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <h3>Content Filter</h3>
+
+  <input id="keyword" type="text" placeholder="Keyword">
+
+  <select id="mode">
+    <option value="whitelist">Whitelist</option>
+    <option value="blacklist">Blacklist</option>
+  </select>
+
+  <button id="save">Save</button>
+
+  <div id="status"></div>
+
+  <script src="popup.js"></script>
+
+</body>
 </html>

@@ -1,4 +1,4 @@
-function filterCards(keyword) {
+function filterCards(keyword, filterMode) {
   if (!keyword) return;
   const cards = document.querySelectorAll("ytd-rich-item-renderer");
   cards.forEach(card => {
@@ -6,7 +6,9 @@ function filterCards(keyword) {
     if (!titleEl) return;
     const match = titleEl.textContent.trim().toLowerCase()
       .includes(keyword.toLowerCase());
-    if (match) {
+    const shouldShow = filterMode === "whitelist" ? match : !match;
+
+    if (shouldShow) {
       card.style.removeProperty("visibility");
       card.style.removeProperty("min-height");
       card.style.removeProperty("margin");
@@ -18,14 +20,18 @@ function filterCards(keyword) {
   });
 }
 
-function startObserver(keyword) {
-  filterCards(keyword);
-  setTimeout(() => filterCards(keyword), 1500);
-  new MutationObserver(() => filterCards(keyword))
+function startObserver(keyword, filterMode) {
+  filterCards(keyword, filterMode);
+  setTimeout(() => filterCards(keyword, filterMode), 1500);
+  new MutationObserver(() => filterCards(keyword, filterMode))
     .observe(document.body, { childList: true, subtree: true });
 }
 
-chrome.storage.local.get(["keyword"], (result) => {
-  const keyword = result.keyword || "music";
-  startObserver(keyword);
-});
+chrome.storage.local.get(
+  ["keyword", "filterMode"],
+  (result) => {
+    const keyword = result.keyword || "music";
+    const filterMode = result.filterMode || "whitelist";
+    startObserver(keyword, filterMode);
+  }
+);
