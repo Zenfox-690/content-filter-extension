@@ -1,37 +1,92 @@
-function filterCards(keyword, filterMode) {
+const SITE_CONFIGS = [
+  {
+    name: "YouTube",
+    match: (host) => host.includes("youtube.com"),
+    cardSelector: "ytd-rich-item-renderer",
+    titleSelector: "h3 a"
+  },
+
+  {
+    name: "Reddit",
+    match: (host) => host.includes("reddit.com"),
+    cardSelector: "shreddit-post",
+    titleSelector: "[slot='title']"
+  }
+];
+
+function getSiteConfig() {
+  const host = window.location.hostname;
+
+  return SITE_CONFIGS.find(site => site.match(host));
+}
+
+function applyHiddenStyles(card) {
+  card.style.setProperty("visibility", "hidden", "important");
+  card.style.setProperty("min-height", "1px", "important");
+  card.style.setProperty("margin", "0", "important");
+}
+
+function resetStyles(card) {
+  card.style.removeProperty("visibility");
+  card.style.removeProperty("min-height");
+  card.style.removeProperty("margin");
+}
+
+function filterCards(config, keyword, filterMode) {
   if (!keyword) return;
-  const cards = document.querySelectorAll("ytd-rich-item-renderer");
+
+  const cards = document.querySelectorAll(config.cardSelector);
+
   cards.forEach(card => {
-    const titleEl = card.querySelector("h3 a");
+    const titleEl = card.querySelector(config.titleSelector);
+
     if (!titleEl) return;
-    const match = titleEl.textContent.trim().toLowerCase()
-      .includes(keyword.toLowerCase());
-    const shouldShow = filterMode === "whitelist" ? match : !match;
+
+    const title = titleEl.textContent
+      .trim()
+      .toLowerCase();
+
+    const match = title.includes(keyword.toLowerCase());
+
+    const shouldShow =
+      filterMode === "whitelist"
+        ? match
+        : !match;
 
     if (shouldShow) {
-      card.style.removeProperty("visibility");
-      card.style.removeProperty("min-height");
-      card.style.removeProperty("margin");
+      resetStyles(card);
     } else {
-      card.style.setProperty("visibility", "hidden", "important");
-      card.style.setProperty("min-height", "1px", "important");
-      card.style.setProperty("margin", "0", "important");
+      applyHiddenStyles(card);
     }
   });
 }
 
-function startObserver(keyword, filterMode) {
-  filterCards(keyword, filterMode);
-  setTimeout(() => filterCards(keyword, filterMode), 1500);
-  new MutationObserver(() => filterCards(keyword, filterMode))
-    .observe(document.body, { childList: true, subtree: true });
+function startObserver(config, keyword, filterMode) {
+  filterCards(config, keyword, filterMode);
+
+  setTimeout(() => {
+    filterCards(config, keyword, filterMode);
+  }, 1500);
+
+  new MutationObserver(() => {
+    filterCards(config, keyword, filterMode);
+  }).observe(document.body, {
+    childList: true,
+    subtree: true
+  });
 }
 
-chrome.storage.local.get(
-  ["keyword", "filterMode"],
-  (result) => {
-    const keyword = result.keyword || "music";
-    const filterMode = result.filterMode || "whitelist";
-    startObserver(keyword, filterMode);
-  }
-);
+const config = getSiteConfig();
+
+if (config) {
+  chrome.storage.local.get(
+    ["keyword", "filterMode"],
+    (result) => {
+      startObserver(
+        config,
+        result.keyword || "",
+        result.filterMode || "whitelist"
+      );
+    }
+  );
+}
