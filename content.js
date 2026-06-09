@@ -34,6 +34,18 @@ function resetStyles(card) {
   card.style.removeProperty("margin");
 }
 
+function resetAllCards(config) {
+
+  const cards = document.querySelectorAll(
+    config.cardSelector
+  );
+
+  cards.forEach(card => {
+    resetStyles(card);
+  });
+
+}
+
 function filterCards(config, keyword, filterMode) {
 
   const cards = document.querySelectorAll(config.cardSelector);
@@ -99,21 +111,59 @@ function startObserver(config, settings) {
 
 const config = getSiteConfig();
 
+let currentSettings = {
+  keyword: "",
+  filterMode: "whitelist",
+  enabled: true
+};
+
+function applyCurrentFilter() {
+
+  if (!config) return;
+
+  if (currentSettings.enabled === false) {
+
+    if (observer) {
+      observer.disconnect();
+    }
+
+    resetAllCards(config);
+
+    return;
+  }
+
+  startObserver(config, currentSettings);
+}
+
 if (config) {
 
   chrome.storage.local.get(
-    ["keyword", "filterMode"],
+    ["keyword", "filterMode", "enabled"],
     (settings) => {
-      startObserver(config, settings);
+
+      currentSettings = {
+        keyword: settings.keyword || "",
+        filterMode: settings.filterMode || "whitelist",
+        enabled: settings.enabled ?? true
+      };
+
+      applyCurrentFilter();
     }
   );
 
   chrome.storage.onChanged.addListener(() => {
 
     chrome.storage.local.get(
-      ["keyword", "filterMode"],
+      ["keyword", "filterMode", "enabled"],
       (settings) => {
-        startObserver(config, settings);
+
+        currentSettings = {
+          keyword: settings.keyword || "",
+          filterMode: settings.filterMode || "whitelist",
+          enabled: settings.enabled ?? true
+        };
+
+        applyCurrentFilter();
       }
     );
 
