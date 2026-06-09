@@ -35,9 +35,16 @@ function resetStyles(card) {
 }
 
 function filterCards(config, keyword, filterMode) {
+
   const cards = document.querySelectorAll(config.cardSelector);
 
+  const keywords = keyword
+    .split(",")
+    .map(k => k.trim().toLowerCase())
+    .filter(Boolean);
+
   cards.forEach(card => {
+
     const titleEl = card.querySelector(config.titleSelector);
 
     if (!titleEl) return;
@@ -46,9 +53,9 @@ function filterCards(config, keyword, filterMode) {
       .trim()
       .toLowerCase();
 
-    const match =
-      keyword &&
-      title.includes(keyword.toLowerCase());
+    const match = keywords.some(keyword =>
+      title.includes(keyword)
+    );
 
     const shouldShow =
       filterMode === "whitelist"
@@ -60,7 +67,9 @@ function filterCards(config, keyword, filterMode) {
     } else {
       applyHiddenStyles(card);
     }
+
   });
+
 }
 
 function runFilter(config, settings) {
