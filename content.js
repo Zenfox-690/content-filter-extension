@@ -46,6 +46,8 @@ function resetAllCards(config) {
 
 }
 
+let processedCards = new WeakSet();
+
 function filterCards(config, keyword, filterMode) {
 
   const cards = document.querySelectorAll(config.cardSelector);
@@ -56,6 +58,7 @@ function filterCards(config, keyword, filterMode) {
     .filter(Boolean);
 
   cards.forEach(card => {
+    if (processedCards.has(card)) return;
 
     const titleEl = card.querySelector(config.titleSelector);
 
@@ -80,6 +83,7 @@ function filterCards(config, keyword, filterMode) {
       applyHiddenStyles(card);
     }
 
+    processedCards.add(card);
   });
 
 }
@@ -132,6 +136,7 @@ function applyCurrentFilter() {
     return;
   }
 
+  processedCards = new WeakSet();
   startObserver(config, currentSettings);
 }
 
