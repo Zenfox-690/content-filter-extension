@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html>
-  <body>
-    <h3>Content Filter</h3>
-  </body>
-</html><!DOCTYPE html>
-<html>
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Content Filter</title>
   <style>
     body {
       width: 260px;
@@ -31,20 +29,23 @@
 
   <h3>Content Filter</h3>
 
+  <label for="keyword">Keywords</label>
   <input id="keyword" type="text" placeholder="music, gaming, ai">
 
+  <label for="mode">Filtering mode</label>
   <select id="mode">
     <option value="whitelist">Whitelist</option>
     <option value="blacklist">Blacklist</option>
   </select>
-  
-    <select id="enabled">
+  <label for="enabled">Filtering</label>
+  <select id="enabled">
     <option value="true">Enabled</option>
     <option value="false">Disabled</option>
   </select>
-  <button id="save">Save</button>
+  <button id="save" type="button">Save settings</button>
 
-  <div id="status"></div>
+  <div id="support-status" role="status" aria-live="polite"></div>
+  <div id="status" role="status" aria-live="polite"></div>
 
   <script src="popup.js"></script>
 
